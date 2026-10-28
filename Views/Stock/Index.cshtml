@@ -1,0 +1,180 @@
+@model IEnumerable<SmartInventory.Models.StockTransaction>
+@{
+    ViewData["Title"] = "Stock Movement Ledger & Audit Trail";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Stock Movement & Audit Ledger</h2>
+        <p class="text-muted mb-0">Complete historical audit trail for Stock In deliveries, Stock Out sales, and inventory adjustments.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="LowStock" class="btn btn-outline-warning text-dark fw-semibold">
+            <i class="bi bi-bell-fill text-warning"></i> Low Stock Alerts
+        </a>
+        <a asp-action="Adjust" class="btn btn-primary-custom">
+            <i class="bi bi-plus-slash-minus"></i> Record Stock Movement
+        </a>
+    </div>
+</div>
+
+<!-- Filter Box -->
+<div class="inventory-card p-3 mb-4">
+    <form method="get" asp-action="Index">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <select name="productId" asp-items="ViewBag.Products" class="form-select form-select-custom">
+                    <option value="">-- All Products in Ledger --</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select name="type" class="form-select form-select-custom">
+                    <option value="">-- All Movement Types --</option>
+                    <option value="1" selected="@(ViewBag.SelectedType != null && (int)ViewBag.SelectedType == 1)">Stock In (Replenishment)</option>
+                    <option value="2" selected="@(ViewBag.SelectedType != null && (int)ViewBag.SelectedType == 2)">Stock Out (Sales / Dispatch)</option>
+                    <option value="3" selected="@(ViewBag.SelectedType != null && (int)ViewBag.SelectedType == 3)">Adjustment (Audit Reconciliation)</option>
+                    <option value="4" selected="@(ViewBag.SelectedType != null && (int)ViewBag.SelectedType == 4)">Return (Customer Return)</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary-custom flex-grow-1 justify-content-center">
+                    <i class="bi bi-funnel"></i> Filter Ledger
+                </button>
+                <a asp-action="Index" class="btn btn-outline-custom" title="Reset Filters">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Transactions Table -->
+<div class="inventory-card">
+    <div class="table-responsive">
+        <table class="table table-modern">
+            <thead>
+                <tr>
+                    <th>Ref # / Time</th>
+                    <th>Product & SKU</th>
+                    <th>Category</th>
+                    <th>Transaction Type</th>
+                    <th class="text-center">Quantity Delta</th>
+                    <th>Balance Change</th>
+                    <th>Reason / Reference Note</th>
+                    <th>Staff</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-journal-x fs-1 d-block mb-2 text-secondary"></i>
+                            <h5 class="fw-bold">No stock movement records found</h5>
+                            <p class="small">Try clearing filter parameters or record a new stock movement.</p>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var tx in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">#TX-@tx.Id.ToString("D5")</div>
+                                <div class="text-muted small">@tx.Timestamp.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</div>
+                            </td>
+                            <td>
+                                @if (tx.Product != null)
+                                {
+                                    <a asp-controller="Products" asp-action="Details" asp-route-id="@tx.ProductId" class="fw-bold text-primary text-decoration-none">
+                                        @tx.Product.Name
+                                    </a>
+                                    <div><span class="badge-sku">@tx.Product.SKU</span></div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Product #@tx.ProductId</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    @(tx.Product?.Category?.Name ?? "General")
+                                </span>
+                            </td>
+                            <td>
+                                @switch (tx.TransactionType)
+                                {
+                                    case TransactionType.StockIn:
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                            <i class="bi bi-box-arrow-in-down"></i> Stock In
+                                        </span>
+                                        break;
+                                    case TransactionType.StockOut:
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                                            <i class="bi bi-box-arrow-up"></i> Stock Out
+                                        </span>
+                                        break;
+                                    case TransactionType.Adjustment:
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+                                            <i class="bi bi-sliders"></i> Adjustment
+                                        </span>
+                                        break;
+                                    case TransactionType.Return:
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">
+                                            <i class="bi bi-arrow-return-left"></i> Return
+                                        </span>
+                                        break;
+                                }
+                            </td>
+                            <td class="text-center">
+                                <span class="fs-6 fw-bold @(tx.TransactionType == TransactionType.StockOut ? "text-danger" : "text-success")">
+                                    @(tx.TransactionType == TransactionType.StockOut ? "-" : "+")@tx.Quantity
+                                </span>
+                            </td>
+                            <td>
+                                <div class="text-muted small">
+                                    <span>@tx.PreviousStock</span>
+                                    <i class="bi bi-arrow-right text-secondary mx-1"></i>
+                                    <strong class="text-dark">@tx.NewStock</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-dark small fw-semibold">@tx.Reason</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">@tx.PerformedBy</span>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
+            <div class="text-muted small">
+                Total <strong>@ViewBag.TotalItems</strong> recorded transactions
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item @(ViewBag.CurrentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@(ViewBag.CurrentPage - 1)" asp-route-productId="@ViewBag.SelectedProductId" asp-route-type="@ViewBag.SelectedType">Previous</a>
+                    </li>
+                    @for (int p = 1; p <= ViewBag.TotalPages; p++)
+                    {
+                        <li class="page-item @(p == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@p" asp-route-productId="@ViewBag.SelectedProductId" asp-route-type="@ViewBag.SelectedType">@p</a>
+                        </li>
+                    }
+                    <li class="page-item @(ViewBag.CurrentPage >= ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@(ViewBag.CurrentPage + 1)" asp-route-productId="@ViewBag.SelectedProductId" asp-route-type="@ViewBag.SelectedType">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>

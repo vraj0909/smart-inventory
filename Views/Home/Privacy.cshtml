@@ -1,0 +1,43 @@
+@{
+    ViewData["Title"] = "Security & Privacy Policy";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="inventory-card p-4 p-md-5">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="brand-icon" style="width: 52px; height: 52px; font-size: 1.6rem;">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold text-dark mb-0">System Security & State Architecture</h3>
+                    <span class="text-muted small">Small Business Retail Data Governance</span>
+                </div>
+            </div>
+
+            <h5 class="fw-bold text-dark mb-2">1. State Management & Session Lifecycle</h5>
+            <p class="text-secondary small mb-3">
+                This application utilizes <code>HttpContext.Session</code> to maintain temporary operational state:
+            </p>
+            <ul class="text-secondary small mb-4">
+                <li><strong>Session Action Counter:</strong> Tracks the number of catalog, stock, and supplier operations executed within the active session.</li>
+                <li><strong>Last Action Timestamp:</strong> Stores the most recent inventory modification timestamp to assist staff with shift audit handovers.</li>
+                <li><strong>Restock Order Draft:</strong> Preserves non-committed purchase requisition items in memory until verified and finalized.</li>
+            </ul>
+
+            <h5 class="fw-bold text-dark mb-2">2. Database & Data Integrity</h5>
+            <p class="text-secondary small mb-3">
+                All permanent data is persisted using Entity Framework Core through the <code>Pomelo.EntityFrameworkCore.MySql</code> provider. Foreign key constraints enforce relationship integrity:
+            </p>
+            <ul class="text-secondary small mb-4">
+                <li>Categories and Suppliers cannot be deleted if products are actively linked to them, preventing orphaned records.</li>
+                <li>Every Stock In and Stock Out movement logs an immutable transaction record with staff attribution.</li>
+            </ul>
+
+            <h5 class="fw-bold text-dark mb-2">3. Model Validation & Sanitization</h5>
+            <p class="text-secondary small mb-0">
+                All incoming input is verified both client-side via jQuery Validation Unobtrusive and server-side via .NET DataAnnotations (<code>[Required]</code>, <code>[Range]</code>, <code>[StringLength]</code>, <code>[RegularExpression]</code>) alongside Anti-Forgery token validation (CSRF defense).
+            </p>
+        </div>
+    </div>
+</div>

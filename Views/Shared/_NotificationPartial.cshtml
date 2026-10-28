@@ -1,0 +1,47 @@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm d-flex align-items-center mb-4 custom-alert" role="alert">
+        <i class="bi bi-check-circle-fill fs-4 me-3 text-success"></i>
+        <div class="flex-grow-1">
+            <strong class="d-block text-success-emphasis">Success</strong>
+            <span class="text-secondary-emphasis">@TempData["SuccessMessage"]</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm d-flex align-items-center mb-4 custom-alert" role="alert">
+        <i class="bi bi-exclamation-octagon-fill fs-4 me-3 text-danger"></i>
+        <div class="flex-grow-1">
+            <strong class="d-block text-danger-emphasis">Action Failed</strong>
+            <span class="text-secondary-emphasis">@TempData["ErrorMessage"]</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["WarningMessage"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show shadow-sm d-flex align-items-center mb-4 custom-alert" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+        <div class="flex-grow-1">
+            <strong class="d-block text-warning-emphasis">Notice</strong>
+            <span class="text-secondary-emphasis">@TempData["WarningMessage"]</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["InfoMessage"] != null)
+{
+    <div class="alert alert-info alert-dismissible fade show shadow-sm d-flex align-items-center mb-4 custom-alert" role="alert">
+        <i class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
+        <div class="flex-grow-1">
+            <strong class="d-block text-info-emphasis">Information</strong>
+            <span class="text-secondary-emphasis">@TempData["InfoMessage"]</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}

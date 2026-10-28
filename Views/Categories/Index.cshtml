@@ -1,0 +1,50 @@
+@model IEnumerable<SmartInventory.Models.Category>
+@{
+    ViewData["Title"] = "Product Categories";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Product Categories</h2>
+        <p class="text-muted mb-0">Organize your store inventory into logical retail departments.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary-custom">
+        <i class="bi bi-plus-lg"></i> Add Category
+    </a>
+</div>
+
+<div class="row g-3">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-6 col-xl-4">
+            <div class="inventory-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="brand-icon" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                            <i class="bi @item.Icon"></i>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-secondary" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">@item.Name</h5>
+                    <p class="text-muted small mb-3">@(string.IsNullOrEmpty(item.Description) ? "No category description." : item.Description)</p>
+                </div>
+
+                <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+                    <span class="badge bg-light text-dark border">
+                        <i class="bi bi-boxes me-1 text-primary"></i> @item.Products.Count Products
+                    </span>
+                    <a asp-controller="Products" asp-action="Index" asp-route-categoryId="@item.Id" class="text-primary small fw-semibold text-decoration-none">
+                        Browse Items &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

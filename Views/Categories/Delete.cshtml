@@ -1,0 +1,47 @@
+@model SmartInventory.Models.Category
+@{
+    ViewData["Title"] = $"Delete Category - {Model.Name}";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="inventory-card border-danger shadow-lg">
+            <div class="card-header bg-danger text-white p-3 d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-octagon-fill fs-4"></i>
+                <h5 class="fw-bold mb-0">Confirm Category Deletion</h5>
+            </div>
+            <div class="p-4">
+                <p class="text-danger fw-semibold">
+                    Are you sure you want to delete the category "<strong>@Model.Name</strong>"?
+                </p>
+
+                @if (Model.Products.Any())
+                {
+                    <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+                        <i class="bi bi-x-octagon-fill fs-4 text-danger"></i>
+                        <div>
+                            <strong>Cannot Delete:</strong> There are currently <strong>@Model.Products.Count</strong> products assigned to this category. Please reassign or delete these products first.
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <a asp-action="Index" class="btn btn-outline-custom">Back to Categories</a>
+                    </div>
+                }
+                else
+                {
+                    <form asp-action="Delete" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Index" class="btn btn-outline-custom">Cancel</a>
+                            <button type="submit" class="btn btn-danger px-4 fw-semibold">
+                                <i class="bi bi-trash-fill"></i> Delete Category
+                            </button>
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

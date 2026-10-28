@@ -1,0 +1,83 @@
+@model SmartInventory.Models.Supplier
+@{
+    ViewData["Title"] = "Add New Supplier";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <a asp-action="Index" class="text-muted text-decoration-none small mb-1 d-inline-block">
+                    <i class="bi bi-arrow-left"></i> Back to Suppliers
+                </a>
+                <h2 class="fw-bold text-dark mb-0">Register New Supplier</h2>
+            </div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                <i class="bi bi-shield-check me-1"></i> DataAnnotations Validated
+            </span>
+        </div>
+
+        <div class="inventory-card">
+            <div class="card-header-clean">
+                <div class="card-title-clean">
+                    <i class="bi bi-truck text-primary"></i>
+                    <span>Supplier Information</span>
+                </div>
+            </div>
+            <div class="p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger custom-alert mb-3" role="alert"></div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Name" class="form-label-custom"></label>
+                            <input asp-for="Name" class="form-control form-control-custom" placeholder="e.g., Apex Wholesale Distribution" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ContactPerson" class="form-label-custom"></label>
+                            <input asp-for="ContactPerson" class="form-control form-control-custom" placeholder="e.g., Marcus Vance" />
+                            <span asp-validation-for="ContactPerson" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label-custom"></label>
+                            <input asp-for="Email" type="email" class="form-control form-control-custom" placeholder="orders@supplier.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Phone" class="form-label-custom"></label>
+                            <input asp-for="Phone" class="form-control form-control-custom" placeholder="+1 (555) 234-8901" />
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label asp-for="Address" class="form-label-custom"></label>
+                            <input asp-for="Address" class="form-control form-control-custom" placeholder="Street Address, Suite or Unit #" />
+                            <span asp-validation-for="Address" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="City" class="form-label-custom"></label>
+                            <input asp-for="City" class="form-control form-control-custom" placeholder="City" />
+                            <span asp-validation-for="City" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-custom">Cancel</a>
+                        <button type="submit" class="btn btn-primary-custom px-4">Save Supplier</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

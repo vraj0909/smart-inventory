@@ -1,0 +1,135 @@
+@model IEnumerable<SmartInventory.Models.Product>
+@{
+    ViewData["Title"] = "Low Stock & Shortage Alerts";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h2 class="fw-bold text-dark mb-0">Low Inventory & Depletion Alerts</h2>
+            <span class="badge bg-danger text-white fs-6">@Model.Count() Urgent Items</span>
+        </div>
+        <p class="text-muted mb-0">Direct store intervention list for products currently at or below their safety reorder levels.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Restock" asp-action="Index" class="btn btn-outline-custom">
+            <i class="bi bi-cart3 text-primary"></i> View Restock PO Plan
+        </a>
+        <a asp-action="Adjust" class="btn btn-primary-custom">
+            <i class="bi bi-plus-lg"></i> Quick Stock In
+        </a>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="inventory-card text-center py-5">
+        <i class="bi bi-shield-check fs-1 text-success mb-2 d-block"></i>
+        <h4 class="fw-bold text-dark">All Stock Levels Optimal!</h4>
+        <p class="text-muted small">None of your products are currently below their designated reorder thresholds.</p>
+        <a asp-controller="Products" asp-action="Index" class="btn btn-primary-custom">
+            Browse All Products
+        </a>
+    </div>
+}
+else
+{
+    <div class="inventory-card mb-4">
+        <div class="card-header-clean bg-warning-subtle">
+            <div class="card-title-clean text-warning-emphasis">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>Actionable Replenishment Watchlist</span>
+            </div>
+            <span class="text-muted small">Showing @Model.Count() items requiring supplier orders</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-modern">
+                <thead>
+                    <tr>
+                        <th>Product & SKU</th>
+                        <th>Category</th>
+                        <th>Current Stock</th>
+                        <th>Threshold</th>
+                        <th>Shortage Deficit</th>
+                        <th>Assigned Supplier</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var deficit = item.ReorderLevel - item.QuantityInStock;
+                        var suggestedRestock = Math.Max(item.ReorderLevel * 2 - item.QuantityInStock, 10);
+                        <tr class="@(item.IsOutOfStock ? "table-danger bg-opacity-25" : "")">
+                            <td>
+                                <div class="fw-bold text-dark">@item.Name</div>
+                                <span class="badge-sku">@item.SKU</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="bi @(item.Category?.Icon ?? "bi-tag") me-1"></i>
+                                    @(item.Category?.Name ?? "General")
+                                </span>
+                            </td>
+                            <td>
+                                <span class="fw-bold @(item.IsOutOfStock ? "text-danger" : "text-warning") fs-6">
+                                    @item.QuantityInStock @item.Unit
+                                </span>
+                                @if (item.IsOutOfStock)
+                                {
+                                    <div class="badge-stock-out mt-1"><i class="bi bi-x-circle-fill"></i> Depleted</div>
+                                }
+                                else
+                                {
+                                    <div class="badge-stock-low mt-1"><i class="bi bi-exclamation-triangle-fill"></i> Below Min</div>
+                                }
+                            </td>
+                            <td>
+                                <span class="text-muted">@item.ReorderLevel @item.Unit</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-bold">
+                                    -@(deficit > 0 ? deficit : 0) @item.Unit deficit
+                                </span>
+                            </td>
+                            <td>
+                                @if (item.Supplier != null)
+                                {
+                                    <div class="fw-semibold text-dark">@item.Supplier.Name</div>
+                                    <div class="small text-muted">
+                                        <i class="bi bi-telephone text-primary"></i> @item.Supplier.Phone
+                                    </div>
+                                    <div class="small text-muted">
+                                        <i class="bi bi-envelope text-primary"></i> @item.Supplier.Email
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">No supplier assigned</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-2">
+                                    <!-- 1-Click Add to Session Restock Draft Cart -->
+                                    <form asp-controller="Restock" asp-action="AddToCart" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="productId" value="@item.Id" />
+                                        <input type="hidden" name="customQuantity" value="@suggestedRestock" />
+                                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Add @suggestedRestock units to Restock PO Plan">
+                                            <i class="bi bi-cart-plus"></i> +@suggestedRestock to PO
+                                        </button>
+                                    </form>
+
+                                    <!-- Quick Stock In -->
+                                    <a asp-action="Adjust" asp-route-id="@item.Id" class="btn btn-sm btn-primary-custom" title="Direct Stock In">
+                                        <i class="bi bi-box-arrow-in-down"></i> Stock In
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

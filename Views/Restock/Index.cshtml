@@ -1,0 +1,157 @@
+@model SmartInventory.ViewModels.RestockOrderViewModel
+@{
+    ViewData["Title"] = "Session-Based Restock Order Plan";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Restock Purchase Order Draft</h2>
+        <p class="text-muted mb-0">Managed in <code>HttpContext.Session</code>. Aggregate depleted stock, adjust order quantities, and finalize replenishment.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Stock" asp-action="LowStock" class="btn btn-outline-custom">
+            <i class="bi bi-plus-lg"></i> Add More Depleted Items
+        </a>
+        @if (Model.Items.Any())
+        {
+            <form asp-action="Clear" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Clear your active restock draft?');">
+                    <i class="bi bi-trash"></i> Clear Draft
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="inventory-card text-center py-5">
+        <i class="bi bi-cart-x fs-1 text-muted mb-2 d-block"></i>
+        <h4 class="fw-bold text-dark">Your Restock Order Draft is Empty</h4>
+        <p class="text-muted small mb-4">You can browse the low stock alert list and add products to this session-based order draft.</p>
+        <a asp-controller="Stock" asp-action="LowStock" class="btn btn-primary-custom">
+            <i class="bi bi-shield-exclamation"></i> View Low Stock Items
+        </a>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        <!-- Left: Draft Items Table -->
+        <div class="col-lg-8">
+            <div class="inventory-card">
+                <div class="card-header-clean">
+                    <div class="card-title-clean">
+                        <i class="bi bi-list-check text-primary"></i>
+                        <span>Draft Line Items (@Model.Items.Count items)</span>
+                    </div>
+                    <span class="badge bg-light text-dark border">Session Stored</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-modern">
+                        <thead>
+                            <tr>
+                                <th>Product / SKU</th>
+                                <th>Supplier</th>
+                                <th>Current &rarr; Min</th>
+                                <th style="width: 140px;">Order Qty</th>
+                                <th class="text-end">Est. Cost</th>
+                                <th class="text-end">Remove</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark">@item.ProductName</div>
+                                        <span class="badge-sku">@item.SKU</span>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-semibold text-dark">@item.SupplierName</div>
+                                    </td>
+                                    <td>
+                                        <div class="small text-danger fw-bold">@item.CurrentStock @item.Unit</div>
+                                        <div class="small text-muted">Min: @item.ReorderLevel</div>
+                                    </td>
+                                    <td>
+                                        <form asp-action="UpdateQuantity" method="post" class="d-flex align-items-center gap-1">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="productId" value="@item.ProductId" />
+                                            <input type="number" name="quantity" value="@item.SuggestedRestockQty" min="1" max="10000" class="form-control form-control-sm form-control-custom text-center" style="width: 75px;" />
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Update Quantity">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="fw-bold text-dark">$@item.TotalItemCost.ToString("N2")</div>
+                                        <div class="text-muted small">$$@item.UnitCostPrice.ToString("N2") / @item.Unit</div>
+                                    </td>
+                                    <td class="text-end">
+                                        <form asp-action="Remove" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="productId" value="@item.ProductId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove Item">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Order Summary & Checkout Fulfillment -->
+        <div class="col-lg-4">
+            <div class="inventory-card">
+                <div class="card-header-clean">
+                    <div class="card-title-clean">
+                        <i class="bi bi-receipt text-primary"></i>
+                        <span>Order Summary</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Draft Order Ref:</span>
+                        <strong class="text-dark">@Model.OrderReferenceNumber</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Total Products:</span>
+                        <span class="fw-semibold text-dark">@Model.Items.Count items</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Total Units to Receive:</span>
+                        <span class="fw-bold text-primary">@Model.TotalItemsCount units</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <span class="fs-5 fw-bold text-dark">Estimated Cost:</span>
+                        <span class="fs-4 fw-bold text-success">$@Model.GrandTotalCost.ToString("N2")</span>
+                    </div>
+
+                    <form asp-action="FinalizeOrder" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="form-label-custom">Order Notes / Supplier Invoice Ref</label>
+                            <textarea name="orderNotes" class="form-control form-control-custom" rows="2" placeholder="e.g., Authorized by Manager Marcus - Delivery received at Dock 2"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-custom w-100 justify-content-center py-2 mb-2">
+                            <i class="bi bi-box-seam-fill"></i> Receive & Update Stock Now
+                        </button>
+                    </form>
+
+                    <div class="p-2 bg-light rounded-3 text-muted small mt-3 border">
+                        <i class="bi bi-info-circle text-primary me-1"></i>
+                        Finalizing automatically updates on-hand stock quantities, clears your session draft, and logs audit transactions.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

@@ -1,0 +1,142 @@
+@model SmartInventory.Models.Product
+@{
+    ViewData["Title"] = "Add New Product";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <a asp-action="Index" class="text-muted text-decoration-none small mb-1 d-inline-block">
+                    <i class="bi bi-arrow-left"></i> Back to Products
+                </a>
+                <h2 class="fw-bold text-dark mb-0">Create New Retail Product</h2>
+            </div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                <i class="bi bi-shield-check me-1"></i> Form Validated
+            </span>
+        </div>
+
+        <div class="inventory-card">
+            <div class="card-header-clean">
+                <div class="card-title-clean">
+                    <i class="bi bi-plus-circle text-primary"></i>
+                    <span>Product Specifications & Initial Stock</span>
+                </div>
+            </div>
+            <div class="p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger custom-alert mb-3" role="alert"></div>
+
+                    <!-- Row 1: SKU & Name -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="SKU" class="form-label-custom"></label>
+                            <input asp-for="SKU" class="form-control form-control-custom text-uppercase" placeholder="e.g., TECH-1001" />
+                            <span asp-validation-for="SKU" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-8">
+                            <label asp-for="Name" class="form-label-custom"></label>
+                            <input asp-for="Name" class="form-control form-control-custom" placeholder="e.g., Ergonomic Wireless Mouse 2.4G" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Description -->
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label-custom"></label>
+                        <textarea asp-for="Description" class="form-control form-control-custom" rows="2" placeholder="Brief product description, specifications, or packaging details..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Row 3: Category & Supplier -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="CategoryId" class="form-label-custom"></label>
+                            <select asp-for="CategoryId" class="form-select form-select-custom" asp-items="ViewBag.CategoryId">
+                                <option value="">-- Select Category --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="SupplierId" class="form-label-custom"></label>
+                            <select asp-for="SupplierId" class="form-select form-select-custom" asp-items="ViewBag.SupplierId">
+                                <option value="">-- Select Supplier --</option>
+                            </select>
+                            <span asp-validation-for="SupplierId" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Pricing -->
+                    <div class="row g-3 mb-3 p-3 bg-light rounded-3 border">
+                        <div class="col-md-6">
+                            <label asp-for="PurchasePrice" class="form-label-custom"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">$</span>
+                                <input asp-for="PurchasePrice" type="number" step="0.01" min="0.01" class="form-control form-control-custom" placeholder="0.00" />
+                            </div>
+                            <span asp-validation-for="PurchasePrice" class="text-danger small"></span>
+                            <div class="text-muted small mt-1">Wholesale cost paid to supplier</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="SellingPrice" class="form-label-custom"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">$</span>
+                                <input asp-for="SellingPrice" type="number" step="0.01" min="0.01" class="form-control form-control-custom" placeholder="0.00" />
+                            </div>
+                            <span asp-validation-for="SellingPrice" class="text-danger small"></span>
+                            <div class="text-muted small mt-1">Retail price charged to customer</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 5: Stock Levels & Unit -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label asp-for="QuantityInStock" class="form-label-custom"></label>
+                            <input asp-for="QuantityInStock" type="number" min="0" class="form-control form-control-custom" />
+                            <span asp-validation-for="QuantityInStock" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ReorderLevel" class="form-label-custom"></label>
+                            <input asp-for="ReorderLevel" type="number" min="1" class="form-control form-control-custom" />
+                            <span asp-validation-for="ReorderLevel" class="text-danger small"></span>
+                            <div class="text-muted small mt-1">Alert triggers when stock &le; this level</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Unit" class="form-label-custom"></label>
+                            <select asp-for="Unit" class="form-select form-select-custom">
+                                <option value="pcs">Pieces (pcs)</option>
+                                <option value="box">Box (box)</option>
+                                <option value="pack">Pack (pack)</option>
+                                <option value="ream">Ream (ream)</option>
+                                <option value="kg">Kilogram (kg)</option>
+                                <option value="set">Set (set)</option>
+                                <option value="bundle">Bundle (bundle)</option>
+                            </select>
+                            <span asp-validation-for="Unit" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Active Toggle -->
+                    <div class="form-check form-switch mb-4">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch" checked />
+                        <label asp-for="IsActive" class="form-check-label fw-semibold text-dark">Active Product (Available for retail sales & tracking)</label>
+                    </div>
+
+                    <!-- Form Buttons -->
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-custom">Cancel</a>
+                        <button type="submit" class="btn btn-primary-custom px-4">
+                            <i class="bi bi-check2-circle"></i> Save Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

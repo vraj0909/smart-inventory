@@ -1,0 +1,70 @@
+@model SmartInventory.Models.Category
+@{
+    ViewData["Title"] = $"Edit Category - {Model.Name}";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <a asp-action="Index" class="text-muted text-decoration-none small mb-1 d-inline-block">
+                    <i class="bi bi-arrow-left"></i> Back to Categories
+                </a>
+                <h2 class="fw-bold text-dark mb-0">Edit Category</h2>
+            </div>
+        </div>
+
+        <div class="inventory-card">
+            <div class="card-header-clean">
+                <div class="card-title-clean">
+                    <i class="bi bi-pencil-square text-primary"></i>
+                    <span>Category Attributes</span>
+                </div>
+            </div>
+            <div class="p-4">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="CreatedAt" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger custom-alert mb-3" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label-custom"></label>
+                        <input asp-for="Name" class="form-control form-control-custom" />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label-custom"></label>
+                        <textarea asp-for="Description" class="form-control form-control-custom" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Icon" class="form-label-custom"></label>
+                        <select asp-for="Icon" class="form-select form-select-custom">
+                            <option value="bi-tag">Default Tag (bi-tag)</option>
+                            <option value="bi-laptop">Electronics & Laptops (bi-laptop)</option>
+                            <option value="bi-pencil-square">Office & Stationery (bi-pencil-square)</option>
+                            <option value="bi-tools">Tools & Hardware (bi-tools)</option>
+                            <option value="bi-cup-hot">Beverages & Coffee (bi-cup-hot)</option>
+                            <option value="bi-box-seam">Packaging & Shipping (bi-box-seam)</option>
+                            <option value="bi-bag">Apparel & Bags (bi-bag)</option>
+                            <option value="bi-cart">Retail Grocery (bi-cart)</option>
+                        </select>
+                        <span asp-validation-for="Icon" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-custom">Cancel</a>
+                        <button type="submit" class="btn btn-primary-custom px-4">Update Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,52 @@
+@model SmartInventory.Models.Product
+@{
+    ViewData["Title"] = $"Delete Confirmation - {Model.Name}";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="inventory-card border-danger shadow-lg">
+            <div class="card-header bg-danger text-white p-3 d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-octagon-fill fs-4"></i>
+                <h5 class="fw-bold mb-0">Confirm Product Deletion</h5>
+            </div>
+            <div class="p-4">
+                <p class="text-danger fw-semibold">
+                    Are you sure you want to permanently delete this product from the inventory database? This action cannot be undone.
+                </p>
+
+                <div class="p-3 bg-light rounded-3 border mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="fw-bold text-dark mb-0">@Model.Name</h5>
+                        <span class="badge-sku">@Model.SKU</span>
+                    </div>
+                    <div class="row g-2 text-muted small">
+                        <div class="col-6">Category: <strong class="text-dark">@(Model.Category?.Name ?? "None")</strong></div>
+                        <div class="col-6">Supplier: <strong class="text-dark">@(Model.Supplier?.Name ?? "None")</strong></div>
+                        <div class="col-6">Current Stock: <strong class="text-dark">@Model.QuantityInStock @Model.Unit</strong></div>
+                        <div class="col-6">Selling Price: <strong class="text-dark">$@Model.SellingPrice.ToString("N2")</strong></div>
+                    </div>
+                </div>
+
+                @if (Model.QuantityInStock > 0)
+                {
+                    <div class="alert alert-warning small d-flex align-items-center gap-2 mb-4">
+                        <i class="bi bi-exclamation-triangle-fill fs-5 text-warning"></i>
+                        <div>Warning: This item currently has <strong>@Model.QuantityInStock @Model.Unit</strong> in stock. Deleting it will remove all stock history records.</div>
+                    </div>
+                }
+
+                <form asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="Index" class="btn btn-outline-custom">Cancel</a>
+                        <button type="submit" class="btn btn-danger px-4 fw-semibold">
+                            <i class="bi bi-trash-fill"></i> Permanently Delete Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

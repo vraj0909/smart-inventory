@@ -1,0 +1,165 @@
+@using Microsoft.AspNetCore.Http
+@using SmartInventory.Common
+@using SmartInventory.ViewModels
+@inject IHttpContextAccessor HttpContextAccessor
+@inject DatabaseStatusService DbStatus
+
+@{
+    var session = HttpContextAccessor.HttpContext?.Session;
+    var lastAction = session?.GetString(SessionKeys.LastActionMessage);
+    var lastTime = session?.GetString(SessionKeys.LastActionTime);
+    var actionCount = session?.GetInt32(SessionKeys.ActionCount) ?? 0;
+    var restockCart = session?.GetObject<List<RestockItemSessionModel>>(SessionKeys.RestockCart) ?? new List<RestockItemSessionModel>();
+    var cartCount = restockCart.Count;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Smart Inventory & Stock System</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <!-- Custom Site CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-custom">
+            <div class="container-fluid px-lg-4">
+                <!-- Brand -->
+                <a class="navbar-brand d-flex align-items-center gap-2" asp-controller="Home" asp-action="Index">
+                    <div class="brand-icon">
+                        <i class="bi bi-boxes"></i>
+                    </div>
+                    <div>
+                        <div class="brand-text">SmartInventory</div>
+                    </div>
+                    <span class="brand-badge ms-1">Retail Pro</span>
+                </a>
+
+                <!-- Mobile Toggle -->
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Nav Items -->
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3 gap-1">
+                        <li class="nav-item">
+                            <a class="nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-grid-1x2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "active" : "")" asp-controller="Products" asp-action="Index">
+                                <i class="bi bi-box-seam"></i> Products
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Stock" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Stock" asp-action="Index">
+                                <i class="bi bi-arrow-left-right"></i> Stock Movement
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Stock" && ViewContext.RouteData.Values["action"]?.ToString() == "LowStock" ? "active" : "")" asp-controller="Stock" asp-action="LowStock">
+                                <i class="bi bi-exclamation-triangle-fill text-warning"></i> Low Stock Alerts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index">
+                                <i class="bi bi-tags"></i> Categories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link-custom @(ViewContext.RouteData.Values["controller"]?.ToString() == "Suppliers" ? "active" : "")" asp-controller="Suppliers" asp-action="Index">
+                                <i class="bi bi-truck"></i> Suppliers
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- Right Status & Session Info -->
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <!-- Restock Cart Pill -->
+                        <a asp-controller="Restock" asp-action="Index" class="btn btn-sm btn-outline-custom position-relative" title="Session Restock Draft Orders">
+                            <i class="bi bi-cart3 text-primary"></i> Restock Plan
+                            @if (cartCount > 0)
+                            {
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    @cartCount
+                                </span>
+                            }
+                        </a>
+
+                        <!-- State Management Session Tracker -->
+                        <div class="session-status-badge d-none d-md-inline-flex" title="Active Session: @(string.IsNullOrEmpty(lastAction) ? "Session ready" : lastAction)">
+                            <div class="status-dot-pulse"></div>
+                            <span class="text-secondary fw-semibold">
+                                Session: <strong>@actionCount</strong> actions
+                            </span>
+                            @if (!string.IsNullOrEmpty(lastTime))
+                            {
+                                <span class="text-muted d-none d-xl-inline">| @lastTime</span>
+                            }
+                        </div>
+
+                        <!-- Database Provider Badge -->
+                        @if (DbStatus.IsConnectedToMySql)
+                        {
+                            <span class="badge bg-success-subtle text-success border border-success-subtle py-1 px-2 d-none d-lg-inline-flex align-items-center gap-1" title="Connected to MySQL (Pomelo.EntityFrameworkCore.MySql)">
+                                <i class="bi bi-database-check"></i> MySQL Live
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle py-1 px-2 d-none d-lg-inline-flex align-items-center gap-1" title="@DbStatus.DiagnosticsMessage">
+                                <i class="bi bi-database-exclamation"></i> Demo In-Memory
+                            </span>
+                        }
+
+                        <!-- Quick Restock Button -->
+                        <a asp-controller="Stock" asp-action="Adjust" class="btn btn-sm btn-primary-custom ms-1">
+                            <i class="bi bi-plus-circle"></i> Quick Stock In/Out
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Container -->
+    <main role="main" class="flex-grow-1 py-4">
+        <div class="container-fluid px-lg-4">
+            <!-- Flash Message Banner -->
+            <partial name="_NotificationPartial" />
+            
+            @RenderBody()
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-custom">
+        <div class="container-fluid px-lg-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+                <div>
+                    <span class="fw-bold text-dark">Smart Inventory System</span> &copy; 2026 &bull; Small Business & Retail Stock Management
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-muted small"><i class="bi bi-hdd-network"></i> DB: @DbStatus.ProviderName</span>
+                    <a asp-controller="Home" asp-action="Privacy" class="text-muted text-decoration-none small hover-underline">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

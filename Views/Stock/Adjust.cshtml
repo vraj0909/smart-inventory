@@ -1,0 +1,109 @@
+@model SmartInventory.ViewModels.StockAdjustmentViewModel
+@{
+    ViewData["Title"] = "Record Stock Movement";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <a asp-action="Index" class="text-muted text-decoration-none small mb-1 d-inline-block">
+                    <i class="bi bi-arrow-left"></i> Back to Stock Ledger
+                </a>
+                <h2 class="fw-bold text-dark mb-0">Record Stock Movement</h2>
+            </div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                <i class="bi bi-arrow-left-right me-1"></i> Inventory Reconciliation
+            </span>
+        </div>
+
+        <div class="inventory-card">
+            <div class="card-header-clean">
+                <div class="card-title-clean">
+                    <i class="bi bi-sliders text-primary"></i>
+                    <span>Stock In / Stock Out / Adjustment Form</span>
+                </div>
+            </div>
+            <div class="p-4">
+                <form asp-action="Adjust" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger custom-alert mb-3" role="alert"></div>
+
+                    <!-- Product Selector -->
+                    <div class="mb-3">
+                        <label asp-for="ProductId" class="form-label-custom">Select Product to Adjust</label>
+                        <select asp-for="ProductId" id="ProductSelect" asp-items="ViewBag.ProductList" class="form-select form-select-custom"></select>
+                        <span asp-validation-for="ProductId" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Current Balance Info Box -->
+                    <div class="p-3 bg-light rounded-3 border mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-sm-6">
+                                <span class="text-muted small d-block">Selected Product:</span>
+                                <strong id="ProductNameDisplay" class="fs-6 text-dark">@Model.ProductName</strong>
+                                <div>SKU: <span id="ProductSkuDisplay" class="badge-sku">@Model.SKU</span></div>
+                            </div>
+                            <div class="col-sm-3 text-sm-center border-start">
+                                <span class="text-muted small d-block">Current Stock:</span>
+                                <span id="CurrentStockDisplay" class="fs-4 fw-bold text-dark">@Model.CurrentStock</span>
+                                <span id="ProductUnitDisplay" class="text-muted small">@Model.Unit</span>
+                            </div>
+                            <div class="col-sm-3 text-sm-center border-start">
+                                <span class="text-muted small d-block">Projected Balance:</span>
+                                <span id="PreviewNewStock" class="fs-4 fw-bold text-primary">@Model.CurrentStock</span>
+                                <span class="text-muted small">@Model.Unit</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Movement Type -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="TransactionType" class="form-label-custom"></label>
+                            <select asp-for="TransactionType" id="AdjustmentType" class="form-select form-select-custom">
+                                <option value="1">Stock In (Purchase Replenishment / Supplier Delivery)</option>
+                                <option value="2">Stock Out (Customer Sale / Dispatch / Shrinkage)</option>
+                                <option value="3">Adjustment (Physical Count Direct Override)</option>
+                                <option value="4">Return (Customer Return / Restock)</option>
+                            </select>
+                            <span asp-validation-for="TransactionType" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Quantity" class="form-label-custom"></label>
+                            <input asp-for="Quantity" id="QuantityInput" type="number" min="1" class="form-control form-control-custom" />
+                            <span asp-validation-for="Quantity" class="text-danger small"></span>
+                            <div class="text-muted small mt-1">Number of units to adjust</div>
+                        </div>
+                    </div>
+
+                    <!-- Reason / Reference -->
+                    <div class="mb-3">
+                        <label asp-for="Reason" class="form-label-custom"></label>
+                        <input asp-for="Reason" class="form-control form-control-custom" placeholder="e.g., PO #APX-901, Counter Sales Batch #102, Damaged during transit" />
+                        <span asp-validation-for="Reason" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Staff Member -->
+                    <div class="mb-4">
+                        <label asp-for="PerformedBy" class="form-label-custom"></label>
+                        <input asp-for="PerformedBy" class="form-control form-control-custom" placeholder="Staff Name or Role" />
+                        <span asp-validation-for="PerformedBy" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-custom">Cancel</a>
+                        <button type="submit" class="btn btn-primary-custom px-4">
+                            <i class="bi bi-check2-circle"></i> Commit Stock Transaction
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

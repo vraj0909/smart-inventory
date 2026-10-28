@@ -1,0 +1,206 @@
+@model SmartInventory.Models.Product
+@{
+    ViewData["Title"] = $"Details - {Model.Name}";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <a asp-action="Index" class="text-muted text-decoration-none small mb-1 d-inline-block">
+            <i class="bi bi-arrow-left"></i> Back to Products Catalog
+        </a>
+        <h2 class="fw-bold text-dark mb-0">@Model.Name</h2>
+        <div class="d-flex align-items-center gap-2 mt-1">
+            <span class="badge-sku">@Model.SKU</span>
+            <span class="badge bg-light text-dark border">
+                <i class="bi @(Model.Category?.Icon ?? "bi-tag") me-1"></i> @(Model.Category?.Name ?? "Unassigned")
+            </span>
+            @if (Model.IsOutOfStock)
+            {
+                <span class="badge-stock-out"><i class="bi bi-x-circle-fill"></i> Out of Stock</span>
+            }
+            else if (Model.IsLowStock)
+            {
+                <span class="badge-stock-low"><i class="bi bi-exclamation-triangle-fill"></i> Low Stock Alert</span>
+            }
+            else
+            {
+                <span class="badge-stock-instock"><i class="bi bi-check-circle-fill"></i> In Stock</span>
+            }
+        </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <form asp-controller="Restock" asp-action="AddToCart" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="productId" value="@Model.Id" />
+            <button type="submit" class="btn btn-outline-success">
+                <i class="bi bi-cart-plus"></i> Add to Restock Draft
+            </button>
+        </form>
+        <a asp-controller="Stock" asp-action="Adjust" asp-route-id="@Model.Id" class="btn btn-primary-custom">
+            <i class="bi bi-sliders"></i> Stock In / Out
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-custom">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Left Column: Specs and Financials -->
+    <div class="col-lg-7">
+        <div class="inventory-card mb-4">
+            <div class="card-header-clean">
+                <div class="card-title-clean">
+                    <i class="bi bi-info-circle text-primary"></i>
+                    <span>Product Specifications</span>
+                </div>
+            </div>
+            <div class="p-4">
+                <p class="text-secondary mb-4">@(string.IsNullOrEmpty(Model.Description) ? "No detailed description provided." : Model.Description)</p>
+
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="text-muted small">Cost Price (Wholesale)</div>
+                            <div class="fs-4 fw-bold text-dark">$@Model.PurchasePrice.ToString("N2")</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="text-muted small">Selling Price (Retail)</div>
+                            <div class="fs-4 fw-bold text-success">$@Model.SellingPrice.ToString("N2")</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="text-muted small">Gross Profit Margin</div>
+                            <div class="fs-4 fw-bold text-primary">+@Model.ProfitMargin%</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="text-muted small">Total Inventory Value (Cost)</div>
+                            <div class="fs-4 fw-bold text-dark">$@Model.InventoryCostValue.ToString("N2")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supplier Details -->
+        <div class="inventory-card">
+            <div class="card-header-clean">
+                <div class="card-title-clean">
+                    <i class="bi bi-truck text-primary"></i>
+                    <span>Supplier Information</span>
+                </div>
+                @if (Model.Supplier != null)
+                {
+                    <a asp-controller="Suppliers" asp-action="Details" asp-route-id="@Model.SupplierId" class="text-muted small">View Profile</a>
+                }
+            </div>
+            <div class="p-4">
+                @if (Model.Supplier != null)
+                {
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="brand-icon" style="width: 48px; height: 48px; font-size: 1.5rem;">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">@Model.Supplier.Name</h5>
+                            <span class="text-muted small">Contact: @Model.Supplier.ContactPerson</span>
+                        </div>
+                    </div>
+                    <div class="row g-2 small text-secondary">
+                        <div class="col-sm-6"><i class="bi bi-envelope me-1 text-primary"></i> @Model.Supplier.Email</div>
+                        <div class="col-sm-6"><i class="bi bi-telephone me-1 text-primary"></i> @Model.Supplier.Phone</div>
+                        <div class="col-12"><i class="bi bi-geo-alt me-1 text-primary"></i> @Model.Supplier.Address, @Model.Supplier.City</div>
+                    </div>
+                }
+                else
+                {
+                    <span class="text-muted">No supplier assigned.</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Stock Level Meter & Audit Trail -->
+    <div class="col-lg-5">
+        <!-- Stock Level Gauge -->
+        <div class="inventory-card mb-4">
+            <div class="card-header-clean">
+                <div class="card-title-clean">
+                    <i class="bi bi-speedometer2 text-primary"></i>
+                    <span>Inventory Stock Level</span>
+                </div>
+            </div>
+            <div class="p-4 text-center">
+                <div class="display-4 fw-bold @(Model.IsOutOfStock ? "text-danger" : (Model.IsLowStock ? "text-warning" : "text-success")) mb-1">
+                    @Model.QuantityInStock
+                </div>
+                <div class="text-muted fw-semibold mb-3">@Model.Unit in stock</div>
+
+                <div class="progress mb-3" style="height: 10px;">
+                    @{
+                        int maxGauge = Math.Max(Model.ReorderLevel * 3, 20);
+                        int percentage = Math.Min(100, (int)((double)Model.QuantityInStock / maxGauge * 100));
+                        string barColor = Model.IsOutOfStock ? "bg-danger" : (Model.IsLowStock ? "bg-warning" : "bg-success");
+                    }
+                    <div class="progress-bar @barColor" role="progressbar" style="width: @percentage%;" aria-valuenow="@Model.QuantityInStock" aria-valuemin="0" aria-valuemax="@maxGauge"></div>
+                </div>
+
+                <div class="d-flex justify-content-between text-muted small border-top pt-3">
+                    <span>Reorder Threshold:</span>
+                    <strong class="text-dark">@Model.ReorderLevel @Model.Unit</strong>
+                </div>
+                <div class="d-flex justify-content-between text-muted small mt-2">
+                    <span>Active Status:</span>
+                    <strong class="@(Model.IsActive ? "text-success" : "text-danger")">@(Model.IsActive ? "Active" : "Archived")</strong>
+                </div>
+                <div class="d-flex justify-content-between text-muted small mt-2">
+                    <span>Created:</span>
+                    <span>@Model.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Stock History for this Product -->
+        <div class="inventory-card">
+            <div class="card-header-clean">
+                <div class="card-title-clean">
+                    <i class="bi bi-clock-history text-info"></i>
+                    <span>Stock Audit History</span>
+                </div>
+            </div>
+            <div class="p-3">
+                @if (!Model.StockTransactions.Any())
+                {
+                    <div class="text-center py-3 text-muted small">No transactions recorded for this product.</div>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var tx in Model.StockTransactions)
+                        {
+                            <div class="list-group-item px-1 py-2 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge @(tx.TransactionType == TransactionType.StockOut ? "bg-danger-subtle text-danger" : "bg-success-subtle text-success") border">
+                                        @tx.TransactionType
+                                    </span>
+                                    <span class="text-muted small">@tx.Timestamp.ToLocalTime().ToString("MMM dd, HH:mm")</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <span class="small text-secondary">@tx.Reason</span>
+                                    <strong class="@(tx.TransactionType == TransactionType.StockOut ? "text-danger" : "text-success")">
+                                        @(tx.TransactionType == TransactionType.StockOut ? "-" : "+")@tx.Quantity @Model.Unit
+                                    </strong>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
